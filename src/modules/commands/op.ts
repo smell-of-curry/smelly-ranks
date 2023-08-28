@@ -1,6 +1,6 @@
 import { Player, system } from "@minecraft/server";
 
-system.events.scriptEventReceive.subscribe(
+system.afterEvents.scriptEventReceive.subscribe(
   (data) => {
     if (data.id != "smelly:op") return;
     if (!(data.sourceEntity instanceof Player)) return;

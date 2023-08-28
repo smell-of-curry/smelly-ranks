@@ -1,5 +1,5 @@
 import { Player, RawMessage } from "@minecraft/server";
-import { ActionFormData } from "@minecraft/server-ui";
+import { ActionFormData, FormCancelationReason } from "@minecraft/server-ui";
 import { TIMEOUT_THRESHOLD } from "../../../config/form";
 import type { ButtonCallback, IActionFormButton } from "../types";
 
@@ -51,6 +51,7 @@ export class ActionForm {
    * @param text text to show on this button
    * @param iconPath the path this button shows
    * @param callback what happens when this button is clicked
+   * @param locked if this button is locked and cannot be pushed.
    * @example ```
    * addButton("settings", "textures/items/sum")
    * ```
@@ -58,14 +59,19 @@ export class ActionForm {
   addButton(
     text: string,
     iconPath?: string,
-    callback?: ButtonCallback
+    callback?: ButtonCallback,
+    locked?: boolean
   ): ActionForm {
     this.buttons.push({
       text: text,
       iconPath: iconPath,
       callback: callback,
     });
-    this.form.button(text, iconPath);
+    /**
+     * Adds the ability for button locking using ` `
+     * Grab from {@link https://www.editpad.org/tool/invisible-character}
+     */
+    this.form.button((locked ? " " : "") + text, iconPath);
     return this;
   }
 
@@ -75,9 +81,10 @@ export class ActionForm {
    * @param onUserClosed callback to run if the player closes the form and doesn't select something
    */
   show(player: Player, onUserClosed?: () => void): void {
+    this.triedToShow = 0;
     this.form.show(player).then((response) => {
       if (response.canceled) {
-        if (response.cancelationReason == "userBusy") {
+        if (response.cancelationReason == FormCancelationReason.UserBusy) {
           // check time and reshow form
           if (this.triedToShow > TIMEOUT_THRESHOLD)
             return player.sendMessage({
@@ -86,7 +93,8 @@ export class ActionForm {
           this.triedToShow++;
           this.show(player, onUserClosed);
         }
-        if (response.cancelationReason == "userClosed") onUserClosed?.();
+        if (response.cancelationReason == FormCancelationReason.UserClosed)
+          onUserClosed?.();
         return;
       }
       if (response.selection != null)
@@ -102,10 +110,11 @@ export class ActionForm {
   forceShow(player: Player, onUserClosed?: () => void): void {
     this.form.show(player).then((response) => {
       if (response.canceled) {
-        if (response.cancelationReason == "userBusy") {
+        if (response.cancelationReason == FormCancelationReason.UserBusy) {
           this.forceShow(player, onUserClosed);
         }
-        if (response.cancelationReason == "userClosed") onUserClosed?.();
+        if (response.cancelationReason == FormCancelationReason.UserClosed)
+          onUserClosed?.();
         return;
       }
       if (response.selection != null)

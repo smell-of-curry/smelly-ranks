@@ -32,7 +32,7 @@ Once you add the rank to the player, they will be able to instantly use it in ch
 
 ![Players Rank After adding](./public/rankNew.png?raw=true)
 
-##Configuring the Smelly Rank Plugin
+## Configuring the Smelly Rank Plugin
 
 Configuring the Smelly rank plugin is an essential part of this amazing script. To do this simply type __**`-chatRank config`**__ and a config menu will be brought up allowing you to configure the plugin.
 
@@ -49,6 +49,20 @@ Now when I type in chat I get this.
 ![Rank After Config](./public/rankConfigNew.png?raw=true)
 
 And you can edit the default rank and other stuff the same way.
+
+## Using Commands
+
+Version 2.0 made it possible to use commands, with Smelly Ranks, Here is how to do it.
+
+Adding a rank using the command __**`/tag @p add "rank:rank"`**__
+
+> **Warning**: This will not create the rank, and only add a unidentified rank to the player.
+
+![Add Rank Command](./public/addRankCommandBlock.png?raw=true)
+
+Removing a rank using the command __**`/tag @p remove "rank:rank"`**__
+
+![Remove Rank](./public/removeRankCommandBlock.png?raw=true)
 
 ## Collaborating
 

@@ -1,5 +1,5 @@
 import { Player, RawMessage } from "@minecraft/server";
-import { ModalFormData } from "@minecraft/server-ui";
+import { FormCancelationReason, ModalFormData } from "@minecraft/server-ui";
 import { TIMEOUT_THRESHOLD } from "../../../config/form";
 import type {
   AppendFormField,
@@ -58,7 +58,7 @@ export class ModalForm<
    */
   clearForm() {
     this.form = new ModalFormData();
-    this.args = []
+    this.args = [];
   }
 
   /**
@@ -158,9 +158,10 @@ export class ModalForm<
    * @param callback sends a callback when this form is submitted
    */
   show(player: Player, callback: Callback, onUserClosed?: () => void) {
+    this.triedToShow = 0;
     this.form.show(player).then((response) => {
       if (response.canceled) {
-        if (response.cancelationReason == "userBusy") {
+        if (response.cancelationReason == FormCancelationReason.UserBusy) {
           // check time and reshow form
           if (this.triedToShow > TIMEOUT_THRESHOLD)
             return player.sendMessage({
@@ -169,7 +170,8 @@ export class ModalForm<
           this.triedToShow++;
           this.show(player, callback, onUserClosed);
         }
-        if (response.cancelationReason == "userClosed") onUserClosed?.();
+        if (response.cancelationReason == FormCancelationReason.UserClosed)
+          onUserClosed?.();
         return;
       }
       if (!response.formValues) return;
@@ -196,10 +198,11 @@ export class ModalForm<
   ): void {
     this.form.show(player).then((response) => {
       if (response.canceled) {
-        if (response.cancelationReason == "userBusy") {
+        if (response.cancelationReason == FormCancelationReason.UserBusy) {
           this.forceShow(player, callback, onUserClosed);
         }
-        if (response.cancelationReason == "userClosed") onUserClosed?.();
+        if (response.cancelationReason == FormCancelationReason.UserClosed)
+          onUserClosed?.();
         return;
       }
       if (!response.formValues) return;

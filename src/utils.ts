@@ -1,4 +1,4 @@
-import { MinecraftDimensionTypes, world } from "@minecraft/server";
+import { MinecraftDimensionTypes, Player, world } from "@minecraft/server";
 import {
   DEFAULT_RANK,
   END_STRING,
@@ -31,4 +31,47 @@ export function getDefaultRankConfig(): IChatRankConfig {
     joinString: JOIN_STRING,
     endString: END_STRING,
   };
+}
+
+/**
+ * Gets a players chat ranks.
+ * @param player
+ */
+export function getRanks(player: Player): string[] {
+  return player
+    .getTags()
+    .filter((t) => t.startsWith("rank:"))
+    .map((r) => r.substring(5));
+}
+
+/**
+ * Sets a players chat ranks
+ * @param player
+ */
+export function setRanks(player: Player, ranks: string[]) {
+  const currentRanks = getRanks(player);
+  for (const rank of currentRanks) {
+    removeRank(player, rank);
+  }
+  for (const rank of ranks) {
+    addRank(player, rank);
+  }
+}
+
+/**
+ * Sets a players chat ranks
+ * @param player
+ * @returns if the rank was successfully added.
+ */
+export function addRank(player: Player, rank: string): boolean {
+  return player.addTag("rank:" + rank);
+}
+
+/**
+ * Sets a players chat ranks
+ * @param player
+ * @returns if the rank was successfully removed.
+ */
+export function removeRank(player: Player, rank: string): boolean {
+  return player.removeTag("rank:" + rank);
 }

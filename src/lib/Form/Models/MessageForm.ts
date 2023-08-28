@@ -1,5 +1,5 @@
 import { Player, RawMessage } from "@minecraft/server";
-import { MessageFormData } from "@minecraft/server-ui";
+import { FormCancelationReason, MessageFormData } from "@minecraft/server-ui";
 import { TIMEOUT_THRESHOLD } from "../../../config/form";
 import type { ButtonCallback, IMessageFormButton } from "../types";
 
@@ -80,9 +80,10 @@ export class MessageForm {
    * @param onUserClosed callback to run if the player closes the form and doesn't select something
    */
   show(player: Player, onUserClosed?: () => void): void {
+    this.triedToShow = 0;
     this.form.show(player).then((response) => {
       if (response.canceled) {
-        if (response.cancelationReason == "userBusy") {
+        if (response.cancelationReason == FormCancelationReason.UserBusy) {
           // check time and reshow form
           if (this.triedToShow > TIMEOUT_THRESHOLD)
             return player.sendMessage({
@@ -91,7 +92,7 @@ export class MessageForm {
           this.triedToShow++;
           this.show(player, onUserClosed);
         }
-        if (response.cancelationReason == "userClosed") onUserClosed?.();
+        if (response.cancelationReason == FormCancelationReason.UserClosed) onUserClosed?.();
         return;
       }
       if (response.selection == 0) this.button1?.callback?.();
@@ -107,10 +108,10 @@ export class MessageForm {
   forceShow(player: Player, onUserClosed?: () => void): void {
     this.form.show(player).then((response) => {
       if (response.canceled) {
-        if (response.cancelationReason == "userBusy") {
+        if (response.cancelationReason == FormCancelationReason.UserBusy) {
           this.forceShow(player, onUserClosed);
         }
-        if (response.cancelationReason == "userClosed") onUserClosed?.();
+        if (response.cancelationReason == FormCancelationReason.UserClosed) onUserClosed?.();
         return;
       }
       if (response.selection == 0) this.button1?.callback?.();

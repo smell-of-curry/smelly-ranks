@@ -1,12 +1,13 @@
 import { world } from "@minecraft/server";
 import { beforeChat } from "../../lib/Events/beforeChat";
-import { chatRankConfig, chatRanks } from "../..";
-import { getDefaultRankConfig } from "../../utils";
+import { chatRankConfig } from "../..";
+import { getDefaultRankConfig, getRanks } from "../../utils";
 
 beforeChat.subscribe((ctx) => {
   ctx.cancel = true;
   const config = chatRankConfig.get() ?? getDefaultRankConfig();
-  const playersChatRanks = chatRanks.get(ctx.sender) ?? [config.defaultRank];
+  let playersChatRanks = getRanks(ctx.sender);
+  if (playersChatRanks.length == 0) playersChatRanks = [config.defaultRank];
   const chatValue = playersChatRanks.join(config.joinString);
 
   world.sendMessage(

@@ -1,9 +1,15 @@
-import { chatRankConfig, chatRanks } from "../..";
+import { chatRankConfig } from "../..";
 import { PREFIX } from "../../config/commands";
 import { ArgumentTypes, Command } from "../../lib/Command/Command";
 import { ModalForm } from "../../lib/Form/Models/ModelForm";
 import { confirmAction } from "../../lib/Form/utils";
-import { getDefaultRankConfig } from "../../utils";
+import {
+  addRank,
+  getDefaultRankConfig,
+  getRanks,
+  removeRank,
+  setRanks,
+} from "../../utils";
 
 const root = new Command({
   name: "chatRank",
@@ -66,12 +72,16 @@ root
       return ctx.sender.sendMessage(
         `§cThere are no registered chat ranks! use "${PREFIX}chatRank create"`
       );
+    const currentRanks = getRanks(player);
+    const possibleRanks = config.ranks.filter((r) => !currentRanks.includes(r));
+    if (possibleRanks.length == 0)
+      return ctx.sender.sendMessage(
+        `§c"${player.name}" Already has all registered chat ranks, use "${PREFIX}chatRank create" to create another one!`
+      );
     new ModalForm(`Add Rank to ${player.name}.`)
-      .addDropdown("Rank", config.ranks)
+      .addDropdown("Rank", possibleRanks)
       .show(ctx.sender, (_, rank) => {
-        const playersRanks = chatRanks.get(player) ?? [];
-        playersRanks.push(rank);
-        chatRanks.set(playersRanks, player);
+        addRank(player, rank);
         ctx.sender.sendMessage(
           `§aAdded "${rank}"§r§a to ${player.name}'s Ranks Successfully!`
         );
@@ -88,7 +98,7 @@ root
   })
   .argument(new ArgumentTypes.player())
   .executes((ctx, player) => {
-    const playersRanks = chatRanks.get(player) ?? [];
+    const playersRanks = getRanks(player);
     if (playersRanks.length < 1)
       return ctx.sender.sendMessage(
         `§c${player.name} does not have any ranks!`
@@ -96,9 +106,7 @@ root
     new ModalForm(`Remove a Rank from ${player.name}.`)
       .addDropdown("Rank", playersRanks)
       .show(ctx.sender, (_, rank) => {
-        const index = playersRanks.findIndex((v) => v == rank);
-        playersRanks.splice(index, 1);
-        chatRanks.set(playersRanks, player);
+        removeRank(player, rank);
         ctx.sender.sendMessage(
           `§aDeleted "${rank}"§r§a from ${player.name} Successfully!`
         );
@@ -119,7 +127,7 @@ root
       ctx.sender,
       `Are you sure you want to reset: ${player.name}'s rank data!`,
       () => {
-        chatRanks.remove(player);
+        setRanks(player, []);
         ctx.sender.sendMessage(`§aReset ${player.name}'s rank data!`);
       }
     );
@@ -155,5 +163,22 @@ root
       );
     ctx.sender.sendMessage(
       `§aForm Requested, Close chat to manage Smelly Chat config!`
+    );
+  })
+  .literal({
+    name: "reset",
+    description: "Resets the chatRank config",
+  })
+  .executes((ctx) => {
+    confirmAction(
+      ctx.sender,
+      `Are you sure you want to reset the Smelly Ranks config!`,
+      () => {
+        chatRankConfig.remove();
+        ctx.sender.sendMessage(`§aReset Smelly Chat config successfully!`);
+      }
+    );
+    ctx.sender.sendMessage(
+      `§aForm Requested, Close chat to confirm reset of config data!`
     );
   });
