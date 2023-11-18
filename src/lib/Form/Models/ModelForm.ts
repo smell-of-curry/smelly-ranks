@@ -11,9 +11,7 @@ import type {
 } from "../types";
 import { FormCallback } from "./FormCallback";
 
-export class ModalForm<
-  Callback extends Function = (ctx: FormCallback) => void
-> {
+export class ModalForm<Callback extends Function = (ctx: FormCallback) => void> {
   /**
    *  the title that this form should have
    */
@@ -27,18 +25,13 @@ export class ModalForm<
   /**
    * The arguments this form has
    */
-  public args: (
-    | IModalFormDropDownArg
-    | IModalFormSliderArg
-    | IModalFormTextFieldArg
-    | IModalFormToggleArg
-  )[];
+  public args: (IModalFormDropDownArg | IModalFormSliderArg | IModalFormTextFieldArg | IModalFormToggleArg)[];
 
   /**
    * The amount of times it takes to show this form in ms
    * if this value goes above 200 it will time out
    */
-  private triedToShow: number;
+  private triedToShow!: number;
 
   /**
    * Creates a new form to be shown to a player
@@ -104,13 +97,7 @@ export class ModalForm<
       maximumValue: maximumValue,
       valueStep: valueStep,
     });
-    this.form.slider(
-      label,
-      minimumValue,
-      maximumValue,
-      valueStep,
-      defaultValue
-    );
+    this.form.slider(label, minimumValue, maximumValue, valueStep, defaultValue);
     // @ts-ignore
     return this;
   }
@@ -121,10 +108,7 @@ export class ModalForm<
    * @param defaultValue the default toggle value could be true or false
    * @returns
    */
-  addToggle(
-    label: string,
-    defaultValue?: boolean
-  ): ModalForm<AppendFormField<Callback, boolean>> {
+  addToggle(label: string, defaultValue?: boolean): ModalForm<AppendFormField<Callback, boolean>> {
     this.args.push({ type: "toggle", label: label });
     this.form.toggle(label, defaultValue);
     // @ts-ignore
@@ -170,17 +154,14 @@ export class ModalForm<
           this.triedToShow++;
           this.show(player, callback, onUserClosed);
         }
-        if (response.cancelationReason == FormCancelationReason.UserClosed)
-          onUserClosed?.();
+        if (response.cancelationReason == FormCancelationReason.UserClosed) onUserClosed?.();
         return;
       }
       if (!response.formValues) return;
       callback(
         new FormCallback(this, player, callback, response.formValues),
         ...response.formValues.map((v, i) =>
-          this.args[i].type == "dropdown"
-            ? (this.args[i] as IModalFormDropDownArg).options?.[v as string]
-            : v
+          this.args[i].type == "dropdown" ? (this.args[i] as IModalFormDropDownArg).options?.[v as number] : v
         )
       );
     });
@@ -191,27 +172,20 @@ export class ModalForm<
    * @param player player to show to
    * @param onUserClosed callback to run if the player closes the form and doesn't select something
    */
-  forceShow(
-    player: Player,
-    callback: Callback,
-    onUserClosed?: () => void
-  ): void {
+  forceShow(player: Player, callback: Callback, onUserClosed?: () => void): void {
     this.form.show(player).then((response) => {
       if (response.canceled) {
         if (response.cancelationReason == FormCancelationReason.UserBusy) {
           this.forceShow(player, callback, onUserClosed);
         }
-        if (response.cancelationReason == FormCancelationReason.UserClosed)
-          onUserClosed?.();
+        if (response.cancelationReason == FormCancelationReason.UserClosed) onUserClosed?.();
         return;
       }
       if (!response.formValues) return;
       callback(
         new FormCallback(this, player, callback, response.formValues),
         ...response.formValues.map((v, i) =>
-          this.args[i].type == "dropdown"
-            ? (this.args[i] as IModalFormDropDownArg).options?.[v as string]
-            : v
+          this.args[i].type == "dropdown" ? (this.args[i] as IModalFormDropDownArg).options?.[v as number] : v
         )
       );
     });

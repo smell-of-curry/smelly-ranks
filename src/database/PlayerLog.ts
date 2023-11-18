@@ -2,7 +2,7 @@ import { Player, world } from "@minecraft/server";
 
 export class PlayerLog<T extends any = any> {
   data: Map<string, T>;
-  events: Object;
+  events!: Object;
 
   constructor() {
     this.data = new Map();

@@ -1,17 +1,7 @@
-import {
-  DynamicPropertiesDefinition,
-  Entity,
-  EntityType,
-  world,
-} from "@minecraft/server";
+import { Entity, EntityType, Vector3, world } from "@minecraft/server";
 import { DYNAMIC_PROPERTIES } from "./worldInitializeEvent";
 
 export class DynamicProperty<T extends any> {
-  /**
-   * The Dynamic Properties definition for this dynamic property
-   */
-  definition: DynamicPropertiesDefinition;
-
   /**
    * Identifier for this dynamic property
    */
@@ -26,26 +16,17 @@ export class DynamicProperty<T extends any> {
   /**
    * If this dynamic property should be registered globally available for the world.
    */
-  isWorldDynamic: boolean;
+  isWorldDynamic!: boolean;
 
   /**
    * The entityTypes that this dynamic property is registered on
    */
   entityTypes: EntityType[];
 
-  constructor(
-    id: string,
-    rootType: "number" | "boolean" | "string" | "object",
-    maxLength: number = 900
-  ) {
+  constructor(id: string, rootType: "number" | "boolean" | "string" | "object") {
     this.identifier = id;
     this.rootType = rootType;
     this.entityTypes = [];
-    this.definition = new DynamicPropertiesDefinition();
-    if (rootType == "string" || rootType == "object")
-      this.definition.defineString(id, maxLength);
-    if (rootType == "boolean") this.definition.defineBoolean(id);
-    if (rootType == "number") this.definition.defineNumber(id);
 
     DYNAMIC_PROPERTIES.push(this);
   }
@@ -55,7 +36,7 @@ export class DynamicProperty<T extends any> {
    * @param value value to compile
    * @returns value converted to base type
    */
-  private compile(value: T): number | boolean | string {
+  private compile(value: T): number | boolean | string | Vector3 {
     if (typeof value == "number") return value;
     if (typeof value == "boolean") return value;
     if (typeof value == "string") return value;
@@ -67,12 +48,9 @@ export class DynamicProperty<T extends any> {
    * @param value
    * @returns un-compiled value
    */
-  private unCompile(
-    value: number | boolean | string | undefined
-  ): T | undefined {
+  private unCompile(value: number | boolean | string | undefined | Vector3): T | undefined {
     if (value == undefined) return undefined;
-    if (["boolean", "number", "string"].includes(this.rootType))
-      return value as T;
+    if (["boolean", "number", "string", "Vector3"].includes(this.rootType)) return value as T;
     return JSON.parse(value as string) as T;
   }
 
@@ -101,10 +79,8 @@ export class DynamicProperty<T extends any> {
    */
   get(entity?: Entity): T | undefined {
     try {
-      if (entity)
-        return this.unCompile(entity.getDynamicProperty(this.identifier));
-      if (!this.isWorldDynamic)
-        throw new Error(`${this.identifier} Is not World Dynamic!`);
+      if (entity) return this.unCompile(entity.getDynamicProperty(this.identifier));
+      if (!this.isWorldDynamic) throw new Error(`${this.identifier} Is not World Dynamic!`);
       return this.unCompile(world.getDynamicProperty(this.identifier));
     } catch (error) {
       return undefined;
@@ -123,13 +99,10 @@ export class DynamicProperty<T extends any> {
     if (entity) {
       const typeId = entity.typeId; // Reduces Entity.typeId calls.
       if (!this.entityTypes.find((t) => t.id == typeId))
-        throw new Error(
-          `${entity.id} Is not a registered entity type for ${this.identifier}!`
-        );
+        throw new Error(`${entity.id} Is not a registered entity type for ${this.identifier}!`);
       entity.setDynamicProperty(this.identifier, parsedValue);
     } else {
-      if (!this.isWorldDynamic)
-        throw new Error(`${this.identifier} Is not World Dynamic!`);
+      if (!this.isWorldDynamic) throw new Error(`${this.identifier} Is not World Dynamic!`);
       world.setDynamicProperty(this.identifier, parsedValue);
     }
   }
@@ -142,18 +115,15 @@ export class DynamicProperty<T extends any> {
    * @throws if entity is specified and the entity is not a valid entity type on this
    * @returns if it has successfully removed the dynamic property
    */
-  remove(entity?: Entity): boolean {
+  remove(entity?: Entity): void {
     if (entity) {
       const typeId = entity.typeId; // Reduces Entity.typeId calls.
       if (!this.entityTypes.find((t) => t.id == typeId))
-        throw new Error(
-          `${entity.id} Is not a registered entity type for ${this.identifier}!`
-        );
-      return entity.removeDynamicProperty(this.identifier);
+        throw new Error(`${entity.id} Is not a registered entity type for ${this.identifier}!`);
+      return entity.setDynamicProperty(this.identifier, undefined);
     } else {
-      if (!this.isWorldDynamic)
-        throw new Error(`${this.identifier} Is not World Dynamic!`);
-      return world.removeDynamicProperty(this.identifier);
+      if (!this.isWorldDynamic) throw new Error(`${this.identifier} Is not World Dynamic!`);
+      return world.setDynamicProperty(this.identifier, undefined);
     }
   }
 }

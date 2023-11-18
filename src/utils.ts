@@ -1,10 +1,5 @@
 import { MinecraftDimensionTypes, Player, world } from "@minecraft/server";
-import {
-  DEFAULT_RANK,
-  END_STRING,
-  JOIN_STRING,
-  START_STRING,
-} from "./config/chatRanks";
+import { DEFAULT_RANK, END_STRING, JOIN_STRING, START_STRING } from "./config/chatRanks";
 import type { IChatRankConfig } from "./types";
 
 /**
@@ -35,7 +30,7 @@ export function getDefaultRankConfig(): IChatRankConfig {
 
 /**
  * Gets a players chat ranks.
- * @param player
+ * @param {Player} player
  */
 export function getRanks(player: Player): string[] {
   return player
@@ -46,7 +41,7 @@ export function getRanks(player: Player): string[] {
 
 /**
  * Sets a players chat ranks
- * @param player
+ * @param {Player} player
  */
 export function setRanks(player: Player, ranks: string[]) {
   const currentRanks = getRanks(player);
@@ -60,7 +55,7 @@ export function setRanks(player: Player, ranks: string[]) {
 
 /**
  * Sets a players chat ranks
- * @param player
+ * @param {Player} player
  * @returns if the rank was successfully added.
  */
 export function addRank(player: Player, rank: string): boolean {
@@ -69,7 +64,7 @@ export function addRank(player: Player, rank: string): boolean {
 
 /**
  * Sets a players chat ranks
- * @param player
+ * @param {Player} player
  * @returns if the rank was successfully removed.
  */
 export function removeRank(player: Player, rank: string): boolean {
