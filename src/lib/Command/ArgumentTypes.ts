@@ -23,7 +23,7 @@ export abstract class IArgumentType {
   /**
    * The return type
    */
-  type!: any;
+  type: any;
   /**
    * The name that the help for this command will see
    * @example "string"
@@ -32,7 +32,7 @@ export abstract class IArgumentType {
    * @example "number"
    * @example "UnitType"
    */
-  typeName!: string;
+  typeName: string;
   /**
    * The name this argument is
    */
@@ -56,7 +56,7 @@ export abstract class IArgumentType {
 }
 
 export class LiteralArgumentType implements IArgumentType {
-  type!: null;
+  type: null;
   typeName = "literal";
   matches(value: string): IArgumentReturnData<null> {
     return {
@@ -72,7 +72,7 @@ export class LiteralArgumentType implements IArgumentType {
 }
 
 export class StringArgumentType implements IArgumentType {
-  type!: string;
+  type: string;
   typeName = "string";
   matches(value: string): IArgumentReturnData<string> {
     return {
@@ -89,7 +89,7 @@ export class StringArgumentType implements IArgumentType {
 }
 
 export class IntegerArgumentType implements IArgumentType {
-  type!: number;
+  type: number;
   range?: [number, number];
   typeName = "int";
 
@@ -100,13 +100,18 @@ export class IntegerArgumentType implements IArgumentType {
    * @param range - An array of two numbers defining the range to check against.
    * @returns {boolean} - True if the number is between the two numbers in the range, false otherwise.
    */
-  static isNumberInRange<T extends number>(numberToCheck: T, range: [T, T]): boolean {
+  static isNumberInRange<T extends number>(
+    numberToCheck: T,
+    range: [T, T]
+  ): boolean {
     return numberToCheck >= range[0] && numberToCheck <= range[1];
   }
 
   matches(value: string): IArgumentReturnData<number> {
     return {
-      success: this.range ? IntegerArgumentType.isNumberInRange(parseInt(value), this.range) : !isNaN(Number(value)),
+      success: this.range
+        ? IntegerArgumentType.isNumberInRange(parseInt(value), this.range)
+        : !isNaN(Number(value)),
       value: parseInt(value),
     };
   }
@@ -120,7 +125,7 @@ export class IntegerArgumentType implements IArgumentType {
 }
 
 export class FloatArgumentType implements IArgumentType {
-  type!: number;
+  type: number;
   typeName = "float";
   matches(value: string): IArgumentReturnData<number> {
     return {
@@ -137,7 +142,7 @@ export class FloatArgumentType implements IArgumentType {
 }
 
 export class LocationArgumentType implements IArgumentType {
-  type!: string;
+  type: string;
   typeName = "location";
   matches(value: string): IArgumentReturnData<string> {
     return {
@@ -154,7 +159,7 @@ export class LocationArgumentType implements IArgumentType {
 }
 
 export class BooleanArgumentType implements IArgumentType {
-  type!: boolean;
+  type: boolean;
   typeName = "boolean";
   matches(value: string): IArgumentReturnData<boolean> {
     return {
@@ -171,7 +176,7 @@ export class BooleanArgumentType implements IArgumentType {
 }
 
 export class PlayerArgumentType implements IArgumentType {
-  type!: Player;
+  type: Player;
   typeName = "Player";
   matches(value: string): IArgumentReturnData<Player> {
     return {
@@ -188,7 +193,7 @@ export class PlayerArgumentType implements IArgumentType {
 }
 
 export class TargetArgumentType implements IArgumentType {
-  type!: string;
+  type: string;
   typeName = "Target";
   matches(value: string): IArgumentReturnData<string> {
     return {
@@ -204,8 +209,10 @@ export class TargetArgumentType implements IArgumentType {
   }
 }
 
-export class ArrayArgumentType<T extends ReadonlyArray<string>> implements IArgumentType {
-  type!: T[number];
+export class ArrayArgumentType<T extends ReadonlyArray<string>>
+  implements IArgumentType
+{
+  type: T[number];
   typeName = "string";
   matches(value: string): IArgumentReturnData<string> {
     return {
@@ -225,7 +232,7 @@ export class ArrayArgumentType<T extends ReadonlyArray<string>> implements IArgu
 }
 
 export class DurationArgumentType implements IArgumentType {
-  type!: string;
+  type: string;
   typeName = "Duration";
   matches(value: string): IArgumentReturnData<string> {
     return {

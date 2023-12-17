@@ -1,13 +1,14 @@
 import { Player, world } from "@minecraft/server";
 
 export class PlayerLog<T extends any = any> {
+  /**
+   * Stored Log Data
+   */
   data: Map<string, T>;
-  events!: Object;
 
   constructor() {
     this.data = new Map();
     world.afterEvents.playerLeave.subscribe((data) => {
-      console.warn(`player leave! ${data.playerId} ${data.playerName}`);
       this.data.delete(data.playerId);
     });
   }

@@ -13,14 +13,13 @@ import { MessageForm } from "./Models/MessageForm";
  * ```
  */
 export function confirmAction(
-    player: Player,
-    action: string,
-    onConfirm: () => void,
-    onCancel: () => void = () => {}
-  ) {
-    new MessageForm("Confirm To Continue", action)
-      .setButton1("Confirm", onConfirm)
-      .setButton2("Never Mind", onCancel)
-      .show(player, onCancel);
-  }
-  
+  player: Player,
+  action: string,
+  onConfirm: () => void,
+  onCancel: () => void = () => {}
+) {
+  new MessageForm("Confirm To Continue", action)
+    .setButton1("Confirm", onConfirm)
+    .setButton2("Never Mind", onCancel)
+    .show(player, onCancel);
+}

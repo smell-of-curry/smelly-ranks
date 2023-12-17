@@ -1,4 +1,4 @@
-import { Vector3 } from "@minecraft/server";
+import { Player, Vector3 } from "@minecraft/server";
 import { Range } from "../Form/types.js";
 import {
   LiteralArgumentType,
@@ -8,6 +8,7 @@ import {
   IntegerArgumentType,
   ArrayArgumentType,
   BooleanArgumentType,
+  PlayerArgumentType,
 } from "./ArgumentTypes.js";
 import { CommandCallback } from "./Callback.js";
 import { COMMANDS } from "./index.js";
@@ -58,6 +59,15 @@ export class Command<
     );
     this.children.push(cmd);
     return cmd;
+  }
+
+  /**
+   * Adds a branch to this command of type Player
+   * @param name name this argument should have
+   * @returns new branch to this command
+   */
+  player(name: string): ArgReturn<Callback, Player> {
+    return this.argument(new PlayerArgumentType(name));
   }
 
   /**

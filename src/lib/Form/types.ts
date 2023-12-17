@@ -15,6 +15,10 @@ export interface IActionFormButton {
    * What gets called when this gets clicked
    */
   callback?: ButtonCallback;
+  /**
+   * If this button is un-clickable.
+   */
+  locked?: boolean;
 }
 
 export interface IMessageFormButton {
@@ -36,7 +40,7 @@ export interface IModalFormArg {
   /**
    * Label for this arg
    */
-  label: string,
+  label: string;
 }
 
 export interface IModalFormDropDownArg extends IModalFormArg {
@@ -78,7 +82,7 @@ export interface IModalFormTextFieldArg extends IModalFormArg {
    * if this option is a dropdown this is
    * the Values that this dropdown can have
    */
-  placeholderText: string,
+  placeholderText: string;
 }
 
 export interface IModalFormToggleArg extends IModalFormArg {

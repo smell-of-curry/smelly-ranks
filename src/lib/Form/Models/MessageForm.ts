@@ -19,11 +19,11 @@ export class MessageForm {
   /**
    * the first button of the dialog.
    */
-  private button1!: IMessageFormButton;
+  private button1: IMessageFormButton;
   /**
    * the second button of the dialog.
    */
-  private button2!: IMessageFormButton;
+  private button2: IMessageFormButton;
   /**
    * The amount of times it takes to show this form in ms
    * if this value goes above 200 it will time out

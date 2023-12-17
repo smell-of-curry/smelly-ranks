@@ -1,7 +1,10 @@
-import { Player, RawMessage } from "@minecraft/server";
+import { Player, RawMessage, system } from "@minecraft/server";
 import { ActionFormData, FormCancelationReason } from "@minecraft/server-ui";
 import { TIMEOUT_THRESHOLD } from "../../../config/form";
 import type { ButtonCallback, IActionFormButton } from "../types";
+import { PlayerLog } from "../../../database/PlayerLog";
+
+const playerShowLog = new PlayerLog<number>();
 
 export class ActionForm {
   /**
@@ -15,12 +18,12 @@ export class ActionForm {
   /**
    * The buttons this form has
    */
-  private buttons: IActionFormButton[];
+  protected buttons: IActionFormButton[];
 
   /**
    * The default minecraft form this form is based on
    */
-  private form: ActionFormData;
+  protected form: ActionFormData;
 
   /**
    * The amount of times it takes to show this form in ms
@@ -57,21 +60,27 @@ export class ActionForm {
    * ```
    */
   addButton(
-    text: string,
+    text: string | RawMessage,
     iconPath?: string,
     callback?: ButtonCallback,
     locked?: boolean
   ): ActionForm {
     this.buttons.push({
-      text: text,
-      iconPath: iconPath,
-      callback: callback,
+      text,
+      iconPath,
+      callback,
+      locked,
     });
+    if (typeof text == "string") {
+      text = (locked ? " " : "") + text;
+    } else {
+      text.text = (locked ? " " : "") + text.text;
+    }
     /**
      * Adds the ability for button locking using ` `
      * Grab from {@link https://www.editpad.org/tool/invisible-character}
      */
-    this.form.button((locked ? " " : "") + text, iconPath);
+    this.form.button(text, iconPath);
     return this;
   }
 
@@ -81,6 +90,9 @@ export class ActionForm {
    * @param onUserClosed callback to run if the player closes the form and doesn't select something
    */
   show(player: Player, onUserClosed?: () => void): void {
+    // if ((playerShowLog.get(player) ?? 0) > Date.now() - 200) return;
+    // playerShowLog.set(player, Date.now());
+
     this.triedToShow = 0;
     this.form.show(player).then((response) => {
       if (response.canceled) {
@@ -91,14 +103,17 @@ export class ActionForm {
               translate: "forms.actionForm.show.timeout",
             });
           this.triedToShow++;
-          this.show(player, onUserClosed);
+          system.runTimeout(() => this.show(player, onUserClosed), 20);
         }
         if (response.cancelationReason == FormCancelationReason.UserClosed)
           onUserClosed?.();
         return;
       }
-      if (response.selection != null)
-        this.buttons[response.selection].callback?.();
+      if (response.selection != null) {
+        const selection = this.buttons[response.selection];
+        if (selection.locked) return this.show(player, onUserClosed);
+        selection.callback?.();
+      }
     });
   }
 
@@ -108,17 +123,23 @@ export class ActionForm {
    * @param onUserClosed callback to run if the player closes the form and doesn't select something
    */
   forceShow(player: Player, onUserClosed?: () => void): void {
+    if ((playerShowLog.get(player) ?? 0) > Date.now() - 200) return;
+    playerShowLog.set(player, Date.now());
+
     this.form.show(player).then((response) => {
       if (response.canceled) {
         if (response.cancelationReason == FormCancelationReason.UserBusy) {
-          this.forceShow(player, onUserClosed);
+          system.runTimeout(() => this.forceShow(player, onUserClosed), 20);
         }
         if (response.cancelationReason == FormCancelationReason.UserClosed)
           onUserClosed?.();
         return;
       }
-      if (response.selection != null)
-        this.buttons[response.selection].callback?.();
+      if (response.selection != null) {
+        const selection = this.buttons[response.selection];
+        if (selection.locked) return this.show(player, onUserClosed);
+        selection.callback?.();
+      }
     });
   }
 }
