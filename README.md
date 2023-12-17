@@ -1,4 +1,4 @@
-# Smelly Ranks
+# Smelly Ranks v2.1.0
 
 A Minecraft Bedrock Chat ranks addon, for realms, worlds, and servers. Completely independent to any other addon, and only requires scripts to run.
 
