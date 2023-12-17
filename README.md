@@ -8,7 +8,7 @@ This chat rank plugin is unlike anything you have seen before on Minecraft Bedro
 
 ![Player Example Rank](./public/rank.png?raw=true)
 
-Typing \***\*`-help`\*\*** in chat will send back a list of commands you can use with this Chat rank plugin.
+Typing `-help` in chat will send back a list of commands you can use with this Chat rank plugin.
 
 ![Help Page](./public/help.png?raw=true)
 
