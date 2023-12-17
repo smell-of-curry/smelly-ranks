@@ -16,7 +16,6 @@ esbuild
     outfile: "scripts/index.js",
     minify: !isDev,
     platform: "neutral",
-    watch: isDev,
     external: ["@minecraft/server", "@minecraft/server-ui"],
     legalComments: isDev ? "none" : "none",
   })

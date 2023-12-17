@@ -1,13 +1,7 @@
 import { Player, system, world } from "@minecraft/server";
 import { PREFIX } from "../../config/commands";
 import type { Command } from "./Command";
-import {
-  commandNotFound,
-  commandSyntaxFail,
-  getChatAugments,
-  noPerm,
-  sendCallback,
-} from "./utils";
+import { commandNotFound, commandSyntaxFail, getChatAugments, noPerm, sendCallback } from "./utils";
 import { PlayerLog } from "../../database/PlayerLog";
 
 /**
@@ -31,11 +25,7 @@ world.beforeEvents.chatSend.subscribe((data) => {
   if (!data.message.startsWith(PREFIX)) return; // This is not a command
   data.cancel = true;
   const args = getChatAugments(data.message, PREFIX);
-  const command = COMMANDS.find(
-    (c) =>
-      c.depth == 0 &&
-      (c.data.name == args[0] || c.data?.aliases?.includes(args[0]))
-  );
+  const command = COMMANDS.find((c) => c.depth == 0 && (c.data.name == args[0] || c.data?.aliases?.includes(args[0])));
   const event: ChatEventDetails = {
     message: data.message,
     sendToTargets: data.sendToTargets,
@@ -43,18 +33,14 @@ world.beforeEvents.chatSend.subscribe((data) => {
     targets: data.getTargets(),
   };
   if (!command) return commandNotFound(data.sender, args[0]);
-  if (!command.data?.requires?.(data.sender))
-    return noPerm(event.sender, command);
+  if (!command.data?.requires?.(data.sender)) return noPerm(event.sender, command);
   if (command.data?.cooldown) {
     const cooldownData = commandCooldowns.get(data.sender) ?? {};
     if (Object.keys(cooldownData).length == 0) {
       cooldownData[command.data.name] = Date.now();
       commandCooldowns.set(data.sender, cooldownData);
     } else {
-      if (
-        Date.now() - cooldownData[command.data.name] <
-        command.data.cooldown
-      ) {
+      if (Date.now() - cooldownData[command.data.name] < command.data.cooldown) {
         return data.sender.sendMessage({
           translate: "commands.default.cooldown",
         });
@@ -68,10 +54,8 @@ world.beforeEvents.chatSend.subscribe((data) => {
     if (start.children.length > 0) {
       const arg = start.children.find((v) => v.type?.matches(args[i]).success);
       if (!arg && !args[i] && start.callback) return undefined;
-      if (!arg)
-        return commandSyntaxFail(event.sender, command, start, args, i), "fail";
-      if (!arg.data?.requires?.(event.sender))
-        return noPerm(event.sender, arg), "fail";
+      if (!arg) return commandSyntaxFail(event.sender, command, start, args, i), "fail";
+      if (!arg.data?.requires?.(event.sender)) return noPerm(event.sender, arg), "fail";
       verifiedCommands.push(arg);
       return getArg(arg, i + 1);
     }
