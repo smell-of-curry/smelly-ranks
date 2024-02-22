@@ -5,8 +5,8 @@
   "description": "",
   "main": "scripts/index.js",
   "scripts": {
-    "build": "npx ts-node --esm build.ts",
-    "dev": "npx ts-node --esm build.ts dev"
+    "build": "npx ts-node --esm build",
+    "dev": "npx ts-node --esm build dev"
   },
   "author": "",
   "license": "ISC",
@@ -14,7 +14,8 @@
     "@minecraft/server": "^1.9.0-beta.1.20.60-stable",
     "@minecraft/server-ui": "^1.2.0-beta.1.20.10-stable",
     "@types/node": "^20.3.1",
-    "esbuild": "0.19.5"
+    "esbuild": "0.19.5",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
     "fs-extra": "^11.1.1"
