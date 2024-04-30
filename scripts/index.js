@@ -1,1 +1,1272 @@
-import{world as J}from"@minecraft/server";var x=class{constructor(e,t){this.identifier=e,this.rootType=t}compile(e){return typeof e=="number"||typeof e=="boolean"||typeof e=="string"||this.rootType=="vector"?e:JSON.stringify(e)}unCompile(e){if(e!=null)return["boolean","number","string","vector"].includes(this.rootType)?e:JSON.parse(e)}setWorldDynamic(e=!0){return this.isWorldDynamic=e,this}get(e){try{if(e)return this.unCompile(e.getDynamicProperty(this.identifier));if(!this.isWorldDynamic)throw new Error(`${this.identifier} Is not World Dynamic!`);return this.unCompile(J.getDynamicProperty(this.identifier))}catch{return}}set(e,t){let n=e?this.compile(e):void 0;if(t){if(!t.isValid())throw new Error(`Failed to set Dynamic Property: ${this.identifier} on: ${t.id}, Entity is not Valid`);try{t.setDynamicProperty(this.identifier,n)}catch(s){console.warn(`[Dynamic Property Wrapper] Failed to set ${this.identifier} on: ${t.id}, ${s+s.stack}`)}}else{if(!this.isWorldDynamic)throw new Error(`${this.identifier} Is not World Dynamic!`);try{J.setDynamicProperty(this.identifier,n)}catch(s){console.warn(`[Dynamic Property Wrapper] Failed to set Dynamic Property on: World, ${s+s.stack}`)}}}remove(e){this.set(void 0,e)}};import{world as de}from"@minecraft/server";import{world as ce}from"@minecraft/server";var m="-";var _={};ce.beforeEvents.chatSend.subscribe(r=>{if(!r.message.startsWith(m))for(let e of Object.values(_))e.callback(r)});var P=class{static subscribe(e){let t=Date.now();return _[t]={callback:e},t}static unsubscribe(e){delete _[e]}};import{MinecraftDimensionTypes as b,world as R}from"@minecraft/server";var z="\xA7bMember",K="\xA7r\xA7l\xA78[\xA7r",Y="\xA7r\xA7l\xA78][\xA7r",Q="\xA7r\xA7l\xA78]\xA7r\xA77";var Ee={overworld:R.getDimension(b.overworld),nether:R.getDimension(b.nether),theEnd:R.getDimension(b.theEnd),"minecraft:overworld":R.getDimension(b.overworld),"minecraft:nether":R.getDimension(b.nether),"minecraft:the_end":R.getDimension(b.theEnd)};function p(){return{ranks:[],defaultRank:z,startString:K,joinString:Y,endString:Q}}function w(r){return r.getTags().filter(e=>e.startsWith("rank:")).map(e=>e.substring(5))}function Z(r,e){let t=w(r);for(let n of t)q(r,n);for(let n of e)O(r,n)}function O(r,e){return r.addTag("rank:"+e)}function q(r,e){return r.removeTag("rank:"+e)}P.subscribe(r=>{r.cancel=!0;let e=c.get()??p(),t=w(r.sender);t.length==0&&(t=[e.defaultRank]);let n=t.join(e.joinString);de.sendMessage(`${e.startString}${n}${e.endString} ${r.sender.name}:\xA7r ${r.message}`)});import{world as ue}from"@minecraft/server";function ee(r){return[...ue.getPlayers()].find(e=>e.name===r)}var h=class{constructor(e="literal"){this.name=e;this.typeName="literal";this.name=e}matches(e){return{success:this.name==e}}fail(e){return`${e} should be ${this.name}!`}},D=class{constructor(e="string"){this.name=e;this.typeName="string";this.name=e}matches(e){return{success:!!(e&&e!=""),value:e}}fail(e){return"Value must be of type string!"}},M=class r{constructor(e="integer",t){this.name=e;this.typeName="int";this.name=e,this.range=t}static isNumberInRange(e,t){return e>=t[0]&&e<=t[1]}matches(e){return{success:this.range?r.isNumberInRange(parseInt(e),this.range):!isNaN(Number(e)),value:parseInt(e)}}fail(e){return"Value must be valid number!"}},W=class{constructor(e="float"){this.name=e;this.typeName="float";this.name=e}matches(e){return{success:!!e?.match(/^\d+\.\d+$/)?.[0],value:parseInt(e)}}fail(e){return"Value must be valid float!"}},y=class{constructor(e="location"){this.name=e;this.typeName="location";this.name=e}matches(e){return{success:/^([~^]{0,1}(-\d)?(\d*)?(\.(\d+))?)$/.test(e),value:e}}fail(e){return"Value needs to be a valid number, value can include: [~,^]"}},A=class{constructor(e="boolean"){this.name=e;this.typeName="boolean";this.name=e}matches(e){return{success:!!e?.match(/^(true|false)$/)?.[0],value:e=="true"}}fail(e){return`"${e}" can be either "true" or "false"`}},F=class{constructor(e="player"){this.name=e;this.typeName="Player";this.name=e}matches(e){return{success:!!ee(e),value:ee(e)}}fail(e){return`player: "${e}", is not in this world`}},j=class{constructor(e="target"){this.name=e;this.typeName="Target";this.name=e}matches(e){return{success:!!e?.match(/^(@.|"[\s\S]+")$/)?.[0],value:e}}fail(e){return`${e} is not a valid target`}},I=class{constructor(e="array",t){this.name=e;this.types=t;this.typeName="string";this.name=e,this.types=t,this.typeName=t.join(" | ").replace(/(.{25})..+/,"$1...")}matches(e){return{success:this.types.includes(e),value:e}}fail(e){return`"${e}" must be one of these values: ${this.types.join(" | ")}`}},U=class{constructor(e){this.name=e;this.typeName="Duration"}matches(e){return{success:/^(\d+[hdysmw],?)+$/.test(e),value:e}}fail(e){return`"${e}" must be a value like "10d" or "3s" the first part is the length second is unit`}},S={string:D,int:M,float:W,location:y,boolean:A,player:F,target:j,array:I,duration:U};import{system as fe,world as pe}from"@minecraft/server";var $=class{constructor(e){this.data=e;this.data=e,this.sender=e.sender}};function te(r,e){let t=r.slice(e.length).trim().match(/"[^"]+"|[^\s]+/g);return t?t.map(n=>n.replace(/"(.+)"/,"$1").toString()):[]}function re(r,e){r.sendMessage({rawtext:[{text:"\xA7c"},{translate:"commands.generic.unknown",with:[`${e}`]}]})}function L(r,e){r.sendMessage({rawtext:[{text:e.data.invalidPermission?e.data.invalidPermission:`\xA7cYou do not have permission to use "${e.data.name}"`}]})}function ne(r,e,t,n,s){if(r.sendMessage({rawtext:[{text:"\xA7c"},{translate:"commands.generic.syntax",with:[`${m}${e.data.name} ${n.slice(0,s).join(" ")}`,n[s]??" ",n.slice(s+1).join(" ")]}]}),t.children.length>1||!n[s]){let a=t.children.map(o=>o.type instanceof h?o.type.name:o.type?.typeName);r.sendMessage(`\xA7c"${n[s]??"undefined"}" is not valid! Argument "${[...new Set(t.children.map(o=>o?.type?.name))][0]}" can be typeof: "${a.join('", "')}"`)}else r.sendMessage(`\xA7c${t.children[0]?.type?.fail(n[s])}`)}function ge([r,e,t],n){if(!r||!e||!r)return null;let s=n.getViewDirection(),a=[n.location.x,n.location.y,n.location.z],o=[s.x,s.y,s.z],i=[r,e,t].map(l=>{let u=parseFloat(l);return isNaN(u)?0:u}),d=[r,e,t].map((l,u)=>l.includes("~")?i[u]+a[u]:l.includes("^")?i[u]+o[u]:i[u]);return{x:d[0],y:d[1],z:d[2]}}function se(r,e,t,n){let s=e[e.length-1]??n,a=[];for(let[o,i]of e.entries())if(!i?.type?.name.endsWith("*")){if(i.type instanceof y){a.push(ge([r[o],r[o+1],r[o+2]],t.sender));continue}i.type instanceof h||a.push(i?.type?.matches(r[o]).value??r[o])}s.callback(new $(t),...a)}import{world as he}from"@minecraft/server";var E=class{constructor(){this.data=new Map,he.afterEvents.playerLeave.subscribe(e=>{this.data.delete(e.playerId)})}set(e,t){this.data.set(e.id,t)}get(e){return this.data.get(e.id)}has(e){return this.data.has(e.id)}delete(e){this.data.delete(e.id)}clear(){this.data.clear()}playerIds(){return[...this.data.keys()]}includes(e){return this.playerIds().includes(e.id)}};var g=[],ae=new E;pe.beforeEvents.chatSend.subscribe(r=>{if(!r.message.startsWith(m))return;r.cancel=!0;let e=te(r.message,m),t=g.find(i=>i.depth==0&&(i.data.name==e[0]||i.data?.aliases?.includes(e[0]))),n={message:r.message,sender:r.sender};if(!t)return re(r.sender,e[0]);if(!t.data?.requires?.(r.sender))return L(n.sender,t);if(t.data?.cooldown){let i=ae.get(r.sender)??{};if(Object.keys(i).length==0)i[t.data.name]=Date.now(),ae.set(r.sender,i);else if(Date.now()-i[t.data.name]<t.data.cooldown){let d=Math.abs(Math.ceil((Date.now()-(i[t.data.name]+t.data.cooldown))/1e3));return r.sender.sendMessage({translate:"commands.default.cooldown",with:[t.data.name,d.toString()]})}}e.shift();let s=[],a=(i,d)=>{if(i.children.length>0){let l=i.children.find(u=>u.type?.matches(e[d]).success);return!l&&!e[d]&&i.callback?void 0:l?l.data?.requires?.(n.sender)?(s.push(l),a(l,d+1)):(L(n.sender,l),"fail"):(ne(n.sender,t,i,e,d),"fail")}};a(t,0)!="fail"&&fe.run(()=>{se(e,s,n,t)})});var k=class r{constructor(e,t,n=0,s){this.data=e;this.type=t;this.depth=n;this.parent=s;e.requires||(e.requires=()=>!0),this.data=e,this.type=t??new h(this.data.name),this.children=[],this.depth=n,this.parent=s,this.callback=null,g.push(this)}argument(e){let t=new r(this.data,e,this.depth+1,this);return this.children.push(t),t}player(e){return this.argument(new F(e))}string(e){return this.argument(new D(e))}int(e,t){return this.argument(new M(e,t))}array(e,t){return this.argument(new I(e,t))}boolean(e){return this.argument(new A(e))}location(e){let t=this.argument(new y(e));return e.endsWith("*")?t:t.location(e+"_y*").location(e+"_z*")}literal(e){let t=new r(e,new h(e.name),this.depth+1,this);return this.children.push(t),t}executes(e){return this.callback=e,this}};import{FormCancelationReason as V,ModalFormData as oe}from"@minecraft/server-ui";import{FormCancelationReason as N,MessageFormData as ye}from"@minecraft/server-ui";var C=class{constructor(e,t){this.title=e,this.body=t,this.form=new ye,e&&this.form.title(e),t&&this.form.body(t),this.triedToShow=0}setButton1(e,t){return this.button1={text:e,callback:t},this.form.button1(e),this}setButton2(e,t){return this.button2={text:e,callback:t},this.form.button2(e),this}show(e,t){this.triedToShow=0,this.form.show(e).then(n=>{if(n.canceled){if(n.cancelationReason==N.UserBusy){if(this.triedToShow>200)return e.sendMessage({translate:"forms.actionForm.show.timeout"});this.triedToShow++,this.show(e,t)}n.cancelationReason==N.UserClosed&&t?.();return}n.selection==0&&this.button1?.callback?.(),n.selection==1&&this.button2?.callback?.()})}forceShow(e,t){this.form.show(e).then(n=>{if(n.canceled){n.cancelationReason==N.UserBusy&&this.forceShow(e,t),n.cancelationReason==N.UserClosed&&t?.();return}n.selection==0&&this.button1?.callback?.(),n.selection==1&&this.button2?.callback?.()})}};var v=class{constructor(e,t,n,s){this.form=e,this.player=t,this.callback=n,this.formValues=s}error(e){new C("Error",e).setButton1("Return to form",()=>{let t=this.form.args;this.form.clearForm();for(let[n,s]of t.entries())switch(s.type){case"dropdown":this.form.addDropdown(s.label,s.options,this.formValues[n]);break;case"slider":this.form.addSlider(s.label,s.minimumValue,s.maximumValue,s.valueStep,this.formValues[n]);break;case"textField":this.form.addTextField(s.label,s.placeholderText,this.formValues[n]);break;case"toggle":this.form.addToggle(s.label,this.formValues[n]);default:break}this.form.show(this.player,this.callback)}).setButton2("Cancel").show(this.player)}};var f=class{constructor(e){this.title=e,this.form=new oe,e&&this.form.title(e),this.args=[]}clearForm(){this.form=new oe,this.args=[]}addDropdown(e,t,n){return this.args.push({type:"dropdown",options:t}),this.form.dropdown(e,t,n),this}addSlider(e,t,n,s,a){return this.args.push({type:"slider",label:e,minimumValue:t,maximumValue:n,valueStep:s}),this.form.slider(e,t,n,s,a),this}addToggle(e,t){return this.args.push({type:"toggle",label:e}),this.form.toggle(e,t),this}addTextField(e,t,n){return this.args.push({type:"textField",label:e,placeholderText:t}),this.form.textField(e,t,n),this}show(e,t,n){this.triedToShow=0,this.form.show(e).then(s=>{if(s.canceled){if(s.cancelationReason==V.UserBusy){if(this.triedToShow>200)return e.sendMessage({translate:"forms.actionForm.show.timeout"});this.triedToShow++,this.show(e,t,n)}s.cancelationReason==V.UserClosed&&n?.();return}s.formValues&&t(new v(this,e,t,s.formValues),...s.formValues.map((a,o)=>this.args[o].type=="dropdown"?this.args[o].options?.[a]:a))})}forceShow(e,t,n){this.form.show(e).then(s=>{if(s.canceled){s.cancelationReason==V.UserBusy&&this.forceShow(e,t,n),s.cancelationReason==V.UserClosed&&n?.();return}s.formValues&&t(new v(this,e,t,s.formValues),...s.formValues.map((a,o)=>this.args[o].type=="dropdown"?this.args[o].options?.[a]:a))})}};function G(r,e,t,n=()=>{}){new C("Confirm To Continue",e).setButton1("Confirm",t).setButton2("Never Mind",n).show(r,n)}var T=new k({name:"chatRank",description:"Manages the Smelly Chat plugin.",requires:r=>r.isOp()});T.literal({name:"create",description:"Creates a custom Chat Rank."}).executes(r=>{new f("Create Smelly Chat Rank.").addTextField("Rank","\xA7cAdmin").show(r.sender,(e,t)=>{let n=c.get()??p();n.ranks.push(t),c.set(n),r.sender.sendMessage(`\xA7aCreated Rank: ${t}\xA7r\xA7a Successfully!`)}),r.sender.sendMessage("\xA7aForm Requested, Close chat to create a Smelly Rank!")});T.literal({name:"delete",description:"Deletes a custom Chat Rank."}).executes(r=>{let e=c.get()??p();if(e.ranks.length<1)return r.sender.sendMessage("\xA7cThere are no registered chat ranks to delete!");new f("Delete Smelly Chat Rank.").addDropdown("Rank",e.ranks).show(r.sender,(t,n)=>{let s=e.ranks.findIndex(a=>a==n);e.ranks.splice(s,1),c.set(e),r.sender.sendMessage(`\xA7aDeleted Rank: ${n}\xA7r\xA7a Successfully!`)}),r.sender.sendMessage("\xA7aForm Requested, Close chat to delete a Smelly Rank!")});T.literal({name:"add",description:"Adds a Chat Rank to a player."}).argument(new S.player).executes((r,e)=>{let t=c.get()??p();if(t.ranks.length<1)return r.sender.sendMessage(`\xA7cThere are no registered chat ranks! use "${m}chatRank create"`);let n=w(e),s=t.ranks.filter(a=>!n.includes(a));if(s.length==0)return r.sender.sendMessage(`\xA7c"${e.name}" Already has all registered chat ranks, use "${m}chatRank create" to create another one!`);new f(`Add Rank to ${e.name}.`).addDropdown("Rank",s).show(r.sender,(a,o)=>{O(e,o),r.sender.sendMessage(`\xA7aAdded "${o}"\xA7r\xA7a to ${e.name}'s Ranks Successfully!`)}),r.sender.sendMessage(`\xA7aForm Requested, Close chat to add a Smelly Rank to ${e.name}!`)});T.literal({name:"remove",description:"Removes a Chat Rank from a player."}).argument(new S.player).executes((r,e)=>{let t=w(e);if(t.length<1)return r.sender.sendMessage(`\xA7c${e.name} does not have any ranks!`);new f(`Remove a Rank from ${e.name}.`).addDropdown("Rank",t).show(r.sender,(n,s)=>{q(e,s),r.sender.sendMessage(`\xA7aDeleted "${s}"\xA7r\xA7a from ${e.name} Successfully!`)}),r.sender.sendMessage(`\xA7aForm Requested, Close chat to remove a Smelly Rank from ${e.name}!`)});T.literal({name:"reset",description:"Resets a players rank data."}).argument(new S.player).executes((r,e)=>{G(r.sender,`Are you sure you want to reset: ${e.name}'s rank data!`,()=>{Z(e,[]),r.sender.sendMessage(`\xA7aReset ${e.name}'s rank data!`)}),r.sender.sendMessage(`\xA7aForm Requested, Close chat to reset ${e.name}'s rank data!`)});T.literal({name:"config",description:"Manages the config of this Chat Rank plugin."}).executes(r=>{let e=c.get()??p();new f("Manage Chat Rank Config.").addTextField("Default Rank","\xA7bMember",e.defaultRank).addTextField("Start String","\xA7r\xA7l\xA78[\xA7r",e.startString).addTextField("Join String","\xA7r\xA7l\xA78][\xA7r",e.joinString).addTextField("End String","\xA7r\xA7l\xA78]\xA7r\xA77",e.endString).show(r.sender,(t,n,s,a,o)=>{c.set({ranks:e.ranks,defaultRank:n,startString:s,joinString:a,endString:o}),r.sender.sendMessage("\xA7aUpdated Smelly Chat config!")}),r.sender.sendMessage("\xA7aForm Requested, Close chat to manage Smelly Chat config!")}).literal({name:"reset",description:"Resets the chatRank config"}).executes(r=>{G(r.sender,"Are you sure you want to reset the Smelly Ranks config!",()=>{c.remove(),r.sender.sendMessage("\xA7aReset Smelly Chat config successfully!")}),r.sender.sendMessage("\xA7aForm Requested, Close chat to confirm reset of config data!")});var X=class{constructor(e){this.name=e;this.typeName="CommandName"}matches(e){return{success:!!g.find(t=>t.depth==0&&t.data.name==e),value:e}}fail(e){return`${e} should be a command name!`}};function be(r,e,t){t.sendMessage(`${m}${r.data.name} ${e.map(n=>n.type?n.type.typeName=="literal"?n.data.name:`<${n.type.name}: ${n.type.typeName}>`:null).filter(n=>n).join(" ")}`)}function B(r,e,t,n){if(e.data?.requires?.(n)&&(e.callback&&be(r,e.depth==0?t:t.concat(e),n),e.children.length>0))for(let s of e.children)B(r,s,e.depth==0?t:t.concat(e),n)}function ie(r,e,t){r.sendMessage({rawtext:[{text:`\xA72--- Showing help page ${e} of ${t} (${m}help <page: int>) ---`}]})}function me(r){let e=g.filter(t=>t.depth==0&&t.data?.requires?.(r));return e.length==0?0:Math.ceil(e.length/5)}var le=new k({name:"help",description:"Provides help/list of commands.",aliases:["?","h"]}).executes(r=>{let e=me(r.sender),t=g.filter(n=>n.depth==0&&(n.data?.requires?.(r.sender)??!1)).slice(1*5-5,1*5);ie(r.sender,1,e);for(let n of t)B(n,n,[],r.sender)});le.int("page").executes((r,e)=>{let t=me(r.sender);e>t&&(e=t);let n=g.filter(s=>s.depth==0&&s.data?.requires?.(r.sender)).slice(e*5-5,e*5);ie(r.sender,e,t);for(let s of n)B(s,s,[],r.sender)});le.argument(new X("command")).executes((r,e)=>{let t=g.filter(n=>n.depth==0&&n.data.name==e)[0];B(t,t,[],r.sender)});import{Player as Re,system as we}from"@minecraft/server";we.afterEvents.scriptEventReceive.subscribe(r=>{r.id=="smelly:op"&&r.sourceEntity instanceof Re&&(r.sourceEntity.setOp(!0),r.sourceEntity.sendMessage("\xA7aSet you as OP!"))},{namespaces:["smelly"]});var c=new x("smelly:chatRankConfig","object").setWorldDynamic();export{c as chatRankConfig};
+// src/lib/DynamicPropertyWrapper/DynamicProperty.ts
+import { world } from "@minecraft/server";
+var DynamicProperty = class {
+  constructor(id, rootType) {
+    this.identifier = id;
+    this.rootType = rootType;
+  }
+  /**
+   * Compiles a value to a base type
+   * @param value value to compile
+   * @returns value converted to base type
+   */
+  compile(value) {
+    if (typeof value == "number")
+      return value;
+    if (typeof value == "boolean")
+      return value;
+    if (typeof value == "string")
+      return value;
+    if (this.rootType == "vector")
+      return value;
+    return JSON.stringify(value);
+  }
+  /**
+   * Un-compile a value from {@link compile}
+   * @param value
+   * @returns un-compiled value
+   */
+  unCompile(value) {
+    if (value == void 0)
+      return void 0;
+    if (["boolean", "number", "string", "vector"].includes(this.rootType))
+      return value;
+    return JSON.parse(value);
+  }
+  /**
+   * Sets this property as world dynamic
+   * @param value
+   */
+  setWorldDynamic(value = true) {
+    this.isWorldDynamic = value;
+    return this;
+  }
+  /**
+   * Gets this dynamic property from a entity or world
+   * @param entity Entity to grab from, if null it will grab from world
+   * @throws if entity is null and this dynamic property isn't world Dynamic.
+   */
+  get(entity) {
+    try {
+      if (entity)
+        return this.unCompile(entity.getDynamicProperty(this.identifier));
+      if (!this.isWorldDynamic)
+        throw new Error(`${this.identifier} Is not World Dynamic!`);
+      return this.unCompile(world.getDynamicProperty(this.identifier));
+    } catch (error) {
+      return void 0;
+    }
+  }
+  /**
+   * Sets this dynamic property to a value on entity or world
+   * @param value value to set to
+   * @param entity if entity is specified it will set it on a entity
+   * @throws if no entity is specified and this is not world dynamic
+   * @throws if entity is specified and the entity is not a valid entity type on this
+   */
+  set(value, entity) {
+    let parsedValue = value ? this.compile(value) : void 0;
+    if (entity) {
+      if (!entity.isValid())
+        throw new Error(
+          `Failed to set Dynamic Property: ${this.identifier} on: ${entity.id}, Entity is not Valid`
+        );
+      try {
+        entity.setDynamicProperty(this.identifier, parsedValue);
+      } catch (error) {
+        console.warn(
+          `[Dynamic Property Wrapper] Failed to set ${this.identifier} on: ${entity.id}, ${error + error.stack}`
+        );
+      }
+    } else {
+      if (!this.isWorldDynamic)
+        throw new Error(`${this.identifier} Is not World Dynamic!`);
+      try {
+        world.setDynamicProperty(this.identifier, parsedValue);
+      } catch (error) {
+        console.warn(
+          `[Dynamic Property Wrapper] Failed to set Dynamic Property on: World, ${error + error.stack}`
+        );
+      }
+    }
+  }
+  /**
+   * Removes this dynamic property on entity or world
+   * @param entity if entity is specified it will set it on a entity
+   * @throws if no entity is specified and this is not world dynamic
+   * @throws if entity is specified and the entity is not a valid entity type on this
+   * @returns if it has successfully removed the dynamic property
+   */
+  remove(entity) {
+    this.set(void 0, entity);
+  }
+};
+
+// src/modules/events/beforeChat.ts
+import { world as world4 } from "@minecraft/server";
+
+// src/lib/Events/beforeChat.ts
+import { world as world2 } from "@minecraft/server";
+
+// src/config/commands.ts
+var PREFIX = "-";
+
+// src/lib/Events/beforeChat.ts
+var CALLBACKS = {};
+world2.beforeEvents.chatSend.subscribe((data) => {
+  if (data.message.startsWith(PREFIX))
+    return;
+  for (const callback of Object.values(CALLBACKS)) {
+    callback.callback(data);
+  }
+});
+var beforeChat = class {
+  /**
+   * Subscribes to a callback to get notified when a chat is sent that is not a command
+   * @param callback what to be called when one of these entitys inventorys changes
+   * @returns the id that is used to unsubscribe
+   */
+  static subscribe(callback) {
+    const key = Date.now();
+    CALLBACKS[key] = { callback };
+    return key;
+  }
+  static unsubscribe(key) {
+    delete CALLBACKS[key];
+  }
+};
+
+// src/utils.ts
+import { MinecraftDimensionTypes, world as world3 } from "@minecraft/server";
+
+// src/config/chatRanks.ts
+var DEFAULT_RANK = "\xA7bMember";
+var START_STRING = "\xA7r\xA7l\xA78[\xA7r";
+var JOIN_STRING = "\xA7r\xA7l\xA78][\xA7r";
+var END_STRING = "\xA7r\xA7l\xA78]\xA7r\xA77";
+
+// src/utils.ts
+var DIMENSIONS = {
+  overworld: world3.getDimension(MinecraftDimensionTypes.overworld),
+  nether: world3.getDimension(MinecraftDimensionTypes.nether),
+  theEnd: world3.getDimension(MinecraftDimensionTypes.theEnd),
+  "minecraft:overworld": world3.getDimension(MinecraftDimensionTypes.overworld),
+  "minecraft:nether": world3.getDimension(MinecraftDimensionTypes.nether),
+  "minecraft:the_end": world3.getDimension(MinecraftDimensionTypes.theEnd)
+};
+function getDefaultRankConfig() {
+  return {
+    ranks: [],
+    defaultRank: DEFAULT_RANK,
+    startString: START_STRING,
+    joinString: JOIN_STRING,
+    endString: END_STRING
+  };
+}
+function getRanks(player) {
+  return player.getTags().filter((t) => t.startsWith("rank:")).map((r) => r.substring(5));
+}
+function setRanks(player, ranks) {
+  const currentRanks = getRanks(player);
+  for (const rank of currentRanks) {
+    removeRank(player, rank);
+  }
+  for (const rank of ranks) {
+    addRank(player, rank);
+  }
+}
+function addRank(player, rank) {
+  return player.addTag("rank:" + rank);
+}
+function removeRank(player, rank) {
+  return player.removeTag("rank:" + rank);
+}
+
+// src/modules/events/beforeChat.ts
+beforeChat.subscribe((ctx) => {
+  ctx.cancel = true;
+  const config = chatRankConfig.get() ?? getDefaultRankConfig();
+  let playersChatRanks = getRanks(ctx.sender);
+  if (playersChatRanks.length == 0)
+    playersChatRanks = [config.defaultRank];
+  const chatValue = playersChatRanks.join(config.joinString);
+  world4.sendMessage(
+    `${config.startString}${chatValue}${config.endString} ${ctx.sender.name}:\xA7r ${ctx.message}`
+  );
+});
+
+// src/lib/Command/ArgumentTypes.ts
+import { world as world5 } from "@minecraft/server";
+function fetch(playerName) {
+  return [...world5.getPlayers()].find((player) => player.name === playerName);
+}
+var LiteralArgumentType = class {
+  constructor(name = "literal") {
+    this.name = name;
+    this.typeName = "literal";
+    this.name = name;
+  }
+  matches(value) {
+    return {
+      success: this.name == value
+    };
+  }
+  fail(value) {
+    return `${value} should be ${this.name}!`;
+  }
+};
+var StringArgumentType = class {
+  constructor(name = "string") {
+    this.name = name;
+    this.typeName = "string";
+    this.name = name;
+  }
+  matches(value) {
+    return {
+      success: Boolean(value && value != ""),
+      value
+    };
+  }
+  fail(_value) {
+    return `Value must be of type string!`;
+  }
+};
+var IntegerArgumentType = class _IntegerArgumentType {
+  constructor(name = "integer", range) {
+    this.name = name;
+    this.typeName = "int";
+    this.name = name;
+    this.range = range;
+  }
+  /**
+   * Checks if a number is between two other numbers.
+   *
+   * @param numberToCheck - The number to check.
+   * @param range - An array of two numbers defining the range to check against.
+   * @returns {boolean} - True if the number is between the two numbers in the range, false otherwise.
+   */
+  static isNumberInRange(numberToCheck, range) {
+    return numberToCheck >= range[0] && numberToCheck <= range[1];
+  }
+  matches(value) {
+    return {
+      success: this.range ? _IntegerArgumentType.isNumberInRange(parseInt(value), this.range) : !isNaN(Number(value)),
+      value: parseInt(value)
+    };
+  }
+  fail(_value) {
+    return `Value must be valid number!`;
+  }
+};
+var FloatArgumentType = class {
+  constructor(name = "float") {
+    this.name = name;
+    this.typeName = "float";
+    this.name = name;
+  }
+  matches(value) {
+    return {
+      success: Boolean(value?.match(/^\d+\.\d+$/)?.[0]),
+      value: parseInt(value)
+    };
+  }
+  fail(_value) {
+    return `Value must be valid float!`;
+  }
+};
+var LocationArgumentType = class {
+  constructor(name = "location") {
+    this.name = name;
+    this.typeName = "location";
+    this.name = name;
+  }
+  matches(value) {
+    return {
+      success: /^([~^]{0,1}(-\d)?(\d*)?(\.(\d+))?)$/.test(value),
+      value
+    };
+  }
+  fail(_value) {
+    return `Value needs to be a valid number, value can include: [~,^]`;
+  }
+};
+var BooleanArgumentType = class {
+  constructor(name = "boolean") {
+    this.name = name;
+    this.typeName = "boolean";
+    this.name = name;
+  }
+  matches(value) {
+    return {
+      success: Boolean(value?.match(/^(true|false)$/)?.[0]),
+      value: value == "true" ? true : false
+    };
+  }
+  fail(value) {
+    return `"${value}" can be either "true" or "false"`;
+  }
+};
+var PlayerArgumentType = class {
+  constructor(name = "player") {
+    this.name = name;
+    this.typeName = "Player";
+    this.name = name;
+  }
+  matches(value) {
+    return {
+      success: fetch(value) ? true : false,
+      value: fetch(value)
+    };
+  }
+  fail(value) {
+    return `player: "${value}", is not in this world`;
+  }
+};
+var TargetArgumentType = class {
+  constructor(name = "target") {
+    this.name = name;
+    this.typeName = "Target";
+    this.name = name;
+  }
+  matches(value) {
+    return {
+      success: Boolean(value?.match(/^(@.|"[\s\S]+")$/)?.[0]),
+      value
+    };
+  }
+  fail(value) {
+    return `${value} is not a valid target`;
+  }
+};
+var ArrayArgumentType = class {
+  constructor(name = "array", types) {
+    this.name = name;
+    this.types = types;
+    this.typeName = "string";
+    this.name = name;
+    this.types = types;
+    this.typeName = types.join(" | ").replace(/(.{25})..+/, "$1...");
+  }
+  matches(value) {
+    return {
+      success: this.types.includes(value),
+      value
+    };
+  }
+  fail(value) {
+    return `"${value}" must be one of these values: ${this.types.join(" | ")}`;
+  }
+};
+var DurationArgumentType = class {
+  constructor(name) {
+    this.name = name;
+    this.typeName = "Duration";
+  }
+  matches(value) {
+    return {
+      success: /^(\d+[hdysmw],?)+$/.test(value),
+      value
+    };
+  }
+  fail(value) {
+    return `"${value}" must be a value like "10d" or "3s" the first part is the length second is unit`;
+  }
+};
+var ArgumentTypes = {
+  string: StringArgumentType,
+  int: IntegerArgumentType,
+  float: FloatArgumentType,
+  location: LocationArgumentType,
+  boolean: BooleanArgumentType,
+  player: PlayerArgumentType,
+  target: TargetArgumentType,
+  array: ArrayArgumentType,
+  duration: DurationArgumentType
+};
+
+// src/lib/Command/index.ts
+import { system, world as world7 } from "@minecraft/server";
+
+// src/lib/Command/Callback.ts
+var CommandCallback = class {
+  /**
+   * Returns a commands callback
+   * @param data chat data that was used
+   */
+  constructor(data) {
+    this.data = data;
+    this.data = data;
+    this.sender = data.sender;
+  }
+};
+
+// src/lib/Command/utils.ts
+function getChatAugments(message, prefix) {
+  const match = message.slice(prefix.length).trim().match(/"[^"]+"|[^\s]+/g);
+  if (!match)
+    return [];
+  return match.map((e) => e.replace(/"(.+)"/, "$1").toString());
+}
+function commandNotFound(player, command) {
+  player.sendMessage({
+    rawtext: [
+      {
+        text: `\xA7c`
+      },
+      {
+        translate: `commands.generic.unknown`,
+        with: [`${command}`]
+      }
+    ]
+  });
+}
+function noPerm(player, command) {
+  player.sendMessage({
+    rawtext: [
+      {
+        text: command.data.invalidPermission ? command.data.invalidPermission : `\xA7cYou do not have permission to use "${command.data.name}"`
+      }
+    ]
+  });
+}
+function commandSyntaxFail(player, baseCommand, command, args, i) {
+  player.sendMessage({
+    rawtext: [
+      {
+        text: `\xA7c`
+      },
+      {
+        translate: `commands.generic.syntax`,
+        with: [
+          `${PREFIX}${baseCommand.data.name} ${args.slice(0, i).join(" ")}`,
+          args[i] ?? " ",
+          args.slice(i + 1).join(" ")
+        ]
+      }
+    ]
+  });
+  if (command.children.length > 1 || !args[i]) {
+    const types = command.children.map(
+      (c) => c.type instanceof LiteralArgumentType ? c.type.name : c.type?.typeName
+    );
+    player.sendMessage(
+      `\xA7c"${args[i] ?? "undefined"}" is not valid! Argument "${[...new Set(command.children.map((c) => c?.type?.name))][0]}" can be typeof: "${types.join('", "')}"`
+    );
+  } else {
+    player.sendMessage(`\xA7c${command.children[0]?.type?.fail(args[i])}`);
+  }
+}
+function parseLocationArgs([x, y, z], entity) {
+  if (!x || !y || !x)
+    return null;
+  const viewDirection = entity.getViewDirection();
+  const locations = [entity.location.x, entity.location.y, entity.location.z];
+  const viewVectors = [viewDirection.x, viewDirection.y, viewDirection.z];
+  const a = [x, y, z].map((arg) => {
+    const r = parseFloat(arg);
+    return isNaN(r) ? 0 : r;
+  });
+  const b = [x, y, z].map((arg, index) => {
+    return arg.includes("~") ? a[index] + locations[index] : arg.includes("^") ? a[index] + viewVectors[index] : a[index];
+  });
+  return { x: b[0], y: b[1], z: b[2] };
+}
+function sendCallback(cmdArgs, args, event, baseCommand) {
+  const lastArg = args[args.length - 1] ?? baseCommand;
+  const argsToReturn = [];
+  for (const [i, arg] of args.entries()) {
+    if (arg?.type?.name.endsWith("*"))
+      continue;
+    if (arg.type instanceof LocationArgumentType) {
+      argsToReturn.push(
+        parseLocationArgs(
+          [cmdArgs[i], cmdArgs[i + 1], cmdArgs[i + 2]],
+          event.sender
+        )
+      );
+      continue;
+    }
+    if (arg.type instanceof LiteralArgumentType)
+      continue;
+    argsToReturn.push(arg?.type?.matches(cmdArgs[i]).value ?? cmdArgs[i]);
+  }
+  lastArg.callback(new CommandCallback(event), ...argsToReturn);
+}
+
+// src/database/PlayerLog.ts
+import { world as world6 } from "@minecraft/server";
+var PlayerLog = class {
+  constructor() {
+    this.data = /* @__PURE__ */ new Map();
+    world6.afterEvents.playerLeave.subscribe((data) => {
+      this.data.delete(data.playerId);
+    });
+  }
+  /**
+   * Logs a player to a value
+   */
+  set(player, value) {
+    this.data.set(player.id, value);
+  }
+  /**
+   * Gets a players value
+   */
+  get(player) {
+    return this.data.get(player.id);
+  }
+  /**
+   * Tests if a player is on this log
+   * @param player
+   * @returns
+   */
+  has(player) {
+    return this.data.has(player.id);
+  }
+  /**
+   * Deletes a player from log
+   */
+  delete(player) {
+    this.data.delete(player.id);
+  }
+  /**
+   * Clears this Player log
+   */
+  clear() {
+    this.data.clear();
+  }
+  /**
+   * Gets all the players in the log
+   */
+  playerIds() {
+    return [...this.data.keys()];
+  }
+  /**
+   * Checks to see if a player is in this list
+   * @param player player to check
+   * @returns
+   */
+  includes(player) {
+    return this.playerIds().includes(player.id);
+  }
+};
+
+// src/lib/Command/index.ts
+var COMMANDS = [];
+var commandCooldowns = new PlayerLog();
+world7.beforeEvents.chatSend.subscribe((data) => {
+  if (!data.message.startsWith(PREFIX))
+    return;
+  data.cancel = true;
+  const args = getChatAugments(data.message, PREFIX);
+  const command = COMMANDS.find(
+    (c) => c.depth == 0 && (c.data.name == args[0] || c.data?.aliases?.includes(args[0]))
+  );
+  const event = {
+    message: data.message,
+    sender: data.sender
+  };
+  if (!command)
+    return commandNotFound(data.sender, args[0]);
+  if (!command.data?.requires?.(data.sender))
+    return noPerm(event.sender, command);
+  if (command.data?.cooldown) {
+    const cooldownData = commandCooldowns.get(data.sender) ?? {};
+    if (Object.keys(cooldownData).length == 0) {
+      cooldownData[command.data.name] = Date.now();
+      commandCooldowns.set(data.sender, cooldownData);
+    } else {
+      if (Date.now() - cooldownData[command.data.name] < command.data.cooldown) {
+        const seconds = Math.abs(
+          Math.ceil(
+            (Date.now() - (cooldownData[command.data.name] + command.data.cooldown)) / 1e3
+          )
+        );
+        return data.sender.sendMessage({
+          translate: "commands.default.cooldown",
+          with: [command.data.name, seconds.toString()]
+        });
+      }
+    }
+  }
+  args.shift();
+  const verifiedCommands = [];
+  const getArg = (start, i) => {
+    if (start.children.length > 0) {
+      const arg = start.children.find((v2) => v2.type?.matches(args[i]).success);
+      if (!arg && !args[i] && start.callback)
+        return void 0;
+      if (!arg)
+        return commandSyntaxFail(event.sender, command, start, args, i), "fail";
+      if (!arg.data?.requires?.(event.sender))
+        return noPerm(event.sender, arg), "fail";
+      verifiedCommands.push(arg);
+      return getArg(arg, i + 1);
+    }
+  };
+  let v = getArg(command, 0);
+  if (v == "fail")
+    return;
+  system.run(() => {
+    sendCallback(args, verifiedCommands, event, command);
+  });
+});
+
+// src/lib/Command/Command.ts
+var Command = class _Command {
+  constructor(data, type, depth = 0, parent) {
+    this.data = data;
+    this.type = type;
+    this.depth = depth;
+    this.parent = parent;
+    if (!data.requires)
+      data.requires = () => true;
+    this.data = data;
+    this.type = type ?? new LiteralArgumentType(this.data.name);
+    this.children = [];
+    this.depth = depth;
+    this.parent = parent;
+    this.callback = null;
+    COMMANDS.push(this);
+  }
+  /**
+   * Adds a ranch to this command of your own type
+   * @param type a special type to be added
+   * @returns new branch to this command
+   */
+  argument(type) {
+    const cmd = new _Command(
+      this.data,
+      type,
+      this.depth + 1,
+      this
+    );
+    this.children.push(cmd);
+    return cmd;
+  }
+  /**
+   * Adds a branch to this command of type Player
+   * @param name name this argument should have
+   * @returns new branch to this command
+   */
+  player(name) {
+    return this.argument(new PlayerArgumentType(name));
+  }
+  /**
+   * Adds a branch to this command of type string
+   * @param name name this argument should have
+   * @returns new branch to this command
+   */
+  string(name) {
+    return this.argument(new StringArgumentType(name));
+  }
+  /**
+   * Adds a branch to this command of type string
+   * @param name name this argument should have
+   * @returns new branch to this command
+   */
+  int(name, range) {
+    return this.argument(new IntegerArgumentType(name, range));
+  }
+  /**
+   * Adds a branch to this command of type string
+   * @param name name this argument should have
+   * @returns new branch to this command
+   */
+  array(name, types) {
+    return this.argument(new ArrayArgumentType(name, types));
+  }
+  /**
+   * Adds a branch to this command of type string
+   * @param name name this argument should have
+   * @returns new branch to this command
+   */
+  boolean(name) {
+    return this.argument(new BooleanArgumentType(name));
+  }
+  /**
+   * Adds a argument to this command to add 3 parameters with location types and to return a Location
+   * @param name name this argument  should have
+   * @returns new branch to this command
+   */
+  location(name) {
+    const cmd = this.argument(new LocationArgumentType(name));
+    if (!name.endsWith("*")) {
+      const newArg = cmd.location(name + "_y*").location(name + "_z*");
+      return newArg;
+    }
+    return cmd;
+  }
+  /**
+   * Adds a subCommand to this argument
+   * @param name name this literal should have
+   * @returns new branch to this command
+   */
+  literal(data) {
+    const cmd = new _Command(
+      data,
+      new LiteralArgumentType(data.name),
+      this.depth + 1,
+      this
+    );
+    this.children.push(cmd);
+    return cmd;
+  }
+  /**
+   * Registers this command and its appending arguments
+   * @param callback what to run when this command gets called
+   */
+  executes(callback) {
+    this.callback = callback;
+    return this;
+  }
+};
+
+// src/lib/Form/Models/ModelForm.ts
+import { FormCancelationReason as FormCancelationReason2, ModalFormData } from "@minecraft/server-ui";
+
+// src/config/form.ts
+var TIMEOUT_THRESHOLD = 200;
+
+// src/lib/Form/Models/MessageForm.ts
+import { FormCancelationReason, MessageFormData } from "@minecraft/server-ui";
+var MessageForm = class {
+  /**
+   * Creates a new form to be shown to a player
+   * @param title the title that this form should have
+   * @param body extra text that should be displayed in the form
+   */
+  constructor(title, body) {
+    this.title = title;
+    this.body = body;
+    this.form = new MessageFormData();
+    if (title)
+      this.form.title(title);
+    if (body)
+      this.form.body(body);
+    this.triedToShow = 0;
+  }
+  /**
+   * Method that sets the text for the first button of the dialog.
+   * @param text text to show on this button
+   * @param callback what happens when this button is clicked
+   * @example ```
+   * setButton1("settings", () => {})
+   * ```
+   */
+  setButton1(text, callback) {
+    this.button1 = { text, callback };
+    this.form.button1(text);
+    return this;
+  }
+  /**
+   * Method that sets the text for the second button of the dialog.
+   * @param text text to show on this button
+   * @param callback what happens when this button is clicked
+   * @example ```
+   * setButton2("settings", () => {})
+   * ```
+   */
+  setButton2(text, callback) {
+    this.button2 = { text, callback };
+    this.form.button2(text);
+    return this;
+  }
+  /**
+   * Shows this form to the player
+   * @param player player to show to
+   * @param onUserClosed callback to run if the player closes the form and doesn't select something
+   */
+  show(player, onUserClosed) {
+    this.triedToShow = 0;
+    this.form.show(player).then((response) => {
+      if (response.canceled) {
+        if (response.cancelationReason == FormCancelationReason.UserBusy) {
+          if (this.triedToShow > TIMEOUT_THRESHOLD)
+            return player.sendMessage({
+              translate: "forms.actionForm.show.timeout"
+            });
+          this.triedToShow++;
+          this.show(player, onUserClosed);
+        }
+        if (response.cancelationReason == FormCancelationReason.UserClosed)
+          onUserClosed?.();
+        return;
+      }
+      if (response.selection == 0)
+        this.button1?.callback?.();
+      if (response.selection == 1)
+        this.button2?.callback?.();
+    });
+  }
+  /**
+   * Shows this form to the player, but wont stop
+   * @param player player to show to
+   * @param onUserClosed callback to run if the player closes the form and doesn't select something
+   */
+  forceShow(player, onUserClosed) {
+    this.form.show(player).then((response) => {
+      if (response.canceled) {
+        if (response.cancelationReason == FormCancelationReason.UserBusy) {
+          this.forceShow(player, onUserClosed);
+        }
+        if (response.cancelationReason == FormCancelationReason.UserClosed)
+          onUserClosed?.();
+        return;
+      }
+      if (response.selection == 0)
+        this.button1?.callback?.();
+      if (response.selection == 1)
+        this.button2?.callback?.();
+    });
+  }
+};
+
+// src/lib/Form/Models/FormCallback.ts
+var FormCallback = class {
+  /**
+   * Creates a new form callback instance that can be used by
+   * buttons, and args to run various functions
+   * @param form form that is used in this call
+   */
+  constructor(form, player, callback, formValues) {
+    this.form = form;
+    this.player = player;
+    this.callback = callback;
+    this.formValues = formValues;
+  }
+  /**
+   * Reshow the form and shows the user a error message
+   * @param message error message to show
+   */
+  error(message) {
+    new MessageForm("Error", message).setButton1("Return to form", () => {
+      const args = this.form.args;
+      this.form.clearForm();
+      for (const [i, arg] of args.entries()) {
+        switch (arg.type) {
+          case "dropdown":
+            this.form.addDropdown(arg.label, arg.options, this.formValues[i]);
+            break;
+          case "slider":
+            this.form.addSlider(
+              arg.label,
+              arg.minimumValue,
+              arg.maximumValue,
+              arg.valueStep,
+              this.formValues[i]
+            );
+            break;
+          case "textField":
+            this.form.addTextField(
+              arg.label,
+              arg.placeholderText,
+              this.formValues[i]
+            );
+            break;
+          case "toggle":
+            this.form.addToggle(arg.label, this.formValues[i]);
+          default:
+            break;
+        }
+      }
+      this.form.show(this.player, this.callback);
+    }).setButton2("Cancel").show(this.player);
+  }
+};
+
+// src/lib/Form/Models/ModelForm.ts
+var ModalForm = class {
+  /**
+   * Creates a new form to be shown to a player
+   * @param title the title that this form should have
+   */
+  constructor(title) {
+    this.title = title;
+    this.form = new ModalFormData();
+    if (title)
+      this.form.title(title);
+    this.args = [];
+  }
+  /**
+   * Clears this form
+   */
+  clearForm() {
+    this.form = new ModalFormData();
+    this.args = [];
+  }
+  /**
+   * Adds a dropdown to this form
+   * @param label label to show on dropdown
+   * @param options the available options for this dropdown
+   * @param defaultValueIndex the default value index
+   * @returns this
+   */
+  addDropdown(label, options, defaultValueIndex) {
+    this.args.push({ type: "dropdown", options });
+    this.form.dropdown(label, options, defaultValueIndex);
+    return this;
+  }
+  /**
+   * Adds a slider to this form
+   * @param label label to be shown on this slider
+   * @param minimumValue the smallest value this can be
+   * @param maximumValue the maximum value this can be
+   * @param valueStep how this slider increments
+   * @param defaultValue the default value in slider
+   * @returns this
+   */
+  addSlider(label, minimumValue, maximumValue, valueStep, defaultValue) {
+    this.args.push({
+      type: "slider",
+      label,
+      minimumValue,
+      maximumValue,
+      valueStep
+    });
+    this.form.slider(
+      label,
+      minimumValue,
+      maximumValue,
+      valueStep,
+      defaultValue
+    );
+    return this;
+  }
+  /**
+   * Adds a toggle to this form
+   * @param label the name of this toggle
+   * @param defaultValue the default toggle value could be true or false
+   * @returns
+   */
+  addToggle(label, defaultValue) {
+    this.args.push({ type: "toggle", label });
+    this.form.toggle(label, defaultValue);
+    return this;
+  }
+  /**
+   * Adds a text field to this form
+   * @param label label for this textField
+   * @param placeholderText the text that shows on this field
+   * @param defaultValue the default value that this field has
+   */
+  addTextField(label, placeholderText, defaultValue) {
+    this.args.push({
+      type: "textField",
+      label,
+      placeholderText
+    });
+    this.form.textField(label, placeholderText, defaultValue);
+    return this;
+  }
+  /**
+   * Shows this form to a player
+   * @param player player to show to
+   * @param callback sends a callback when this form is submitted
+   */
+  show(player, callback, onUserClosed) {
+    this.triedToShow = 0;
+    this.form.show(player).then((response) => {
+      if (response.canceled) {
+        if (response.cancelationReason == FormCancelationReason2.UserBusy) {
+          if (this.triedToShow > TIMEOUT_THRESHOLD)
+            return player.sendMessage({
+              translate: "forms.actionForm.show.timeout"
+            });
+          this.triedToShow++;
+          this.show(player, callback, onUserClosed);
+        }
+        if (response.cancelationReason == FormCancelationReason2.UserClosed)
+          onUserClosed?.();
+        return;
+      }
+      if (!response.formValues)
+        return;
+      callback(
+        new FormCallback(this, player, callback, response.formValues),
+        ...response.formValues.map(
+          (v, i) => this.args[i].type == "dropdown" ? this.args[i].options?.[v] : v
+        )
+      );
+    });
+  }
+  /**
+   * Shows this form to the player, but wont stop
+   * @param player player to show to
+   * @param onUserClosed callback to run if the player closes the form and doesn't select something
+   */
+  forceShow(player, callback, onUserClosed) {
+    this.form.show(player).then((response) => {
+      if (response.canceled) {
+        if (response.cancelationReason == FormCancelationReason2.UserBusy) {
+          this.forceShow(player, callback, onUserClosed);
+        }
+        if (response.cancelationReason == FormCancelationReason2.UserClosed)
+          onUserClosed?.();
+        return;
+      }
+      if (!response.formValues)
+        return;
+      callback(
+        new FormCallback(this, player, callback, response.formValues),
+        ...response.formValues.map(
+          (v, i) => this.args[i].type == "dropdown" ? this.args[i].options?.[v] : v
+        )
+      );
+    });
+  }
+};
+
+// src/lib/Form/utils.ts
+function confirmAction(player, action, onConfirm, onCancel = () => {
+}) {
+  new MessageForm("Confirm To Continue", action).setButton1("Confirm", onConfirm).setButton2("Never Mind", onCancel).show(player, onCancel);
+}
+
+// src/modules/commands/chatRank.ts
+var root = new Command({
+  name: "chatRank",
+  description: "Manages the Smelly Chat plugin.",
+  requires: (player) => player.isOp()
+});
+root.literal({
+  name: "create",
+  description: "Creates a custom Chat Rank."
+}).executes((ctx) => {
+  new ModalForm(`Create Smelly Chat Rank.`).addTextField("Rank", "\xA7cAdmin").show(ctx.sender, (_, rank) => {
+    const config = chatRankConfig.get() ?? getDefaultRankConfig();
+    config.ranks.push(rank);
+    chatRankConfig.set(config);
+    ctx.sender.sendMessage(`\xA7aCreated Rank: ${rank}\xA7r\xA7a Successfully!`);
+  });
+  ctx.sender.sendMessage(
+    `\xA7aForm Requested, Close chat to create a Smelly Rank!`
+  );
+});
+root.literal({
+  name: "delete",
+  description: "Deletes a custom Chat Rank."
+}).executes((ctx) => {
+  const config = chatRankConfig.get() ?? getDefaultRankConfig();
+  if (config.ranks.length < 1)
+    return ctx.sender.sendMessage(
+      `\xA7cThere are no registered chat ranks to delete!`
+    );
+  new ModalForm(`Delete Smelly Chat Rank.`).addDropdown("Rank", config.ranks).show(ctx.sender, (_, rank) => {
+    const index = config.ranks.findIndex((v) => v == rank);
+    config.ranks.splice(index, 1);
+    chatRankConfig.set(config);
+    ctx.sender.sendMessage(`\xA7aDeleted Rank: ${rank}\xA7r\xA7a Successfully!`);
+  });
+  ctx.sender.sendMessage(
+    `\xA7aForm Requested, Close chat to delete a Smelly Rank!`
+  );
+});
+root.literal({
+  name: "add",
+  description: "Adds a Chat Rank to a player."
+}).argument(new ArgumentTypes.player()).executes((ctx, player) => {
+  const config = chatRankConfig.get() ?? getDefaultRankConfig();
+  if (config.ranks.length < 1)
+    return ctx.sender.sendMessage(
+      `\xA7cThere are no registered chat ranks! use "${PREFIX}chatRank create"`
+    );
+  const currentRanks = getRanks(player);
+  const possibleRanks = config.ranks.filter((r) => !currentRanks.includes(r));
+  if (possibleRanks.length == 0)
+    return ctx.sender.sendMessage(
+      `\xA7c"${player.name}" Already has all registered chat ranks, use "${PREFIX}chatRank create" to create another one!`
+    );
+  new ModalForm(`Add Rank to ${player.name}.`).addDropdown("Rank", possibleRanks).show(ctx.sender, (_, rank) => {
+    addRank(player, rank);
+    ctx.sender.sendMessage(
+      `\xA7aAdded "${rank}"\xA7r\xA7a to ${player.name}'s Ranks Successfully!`
+    );
+  });
+  ctx.sender.sendMessage(
+    `\xA7aForm Requested, Close chat to add a Smelly Rank to ${player.name}!`
+  );
+});
+root.literal({
+  name: "remove",
+  description: "Removes a Chat Rank from a player."
+}).argument(new ArgumentTypes.player()).executes((ctx, player) => {
+  const playersRanks = getRanks(player);
+  if (playersRanks.length < 1)
+    return ctx.sender.sendMessage(
+      `\xA7c${player.name} does not have any ranks!`
+    );
+  new ModalForm(`Remove a Rank from ${player.name}.`).addDropdown("Rank", playersRanks).show(ctx.sender, (_, rank) => {
+    removeRank(player, rank);
+    ctx.sender.sendMessage(
+      `\xA7aDeleted "${rank}"\xA7r\xA7a from ${player.name} Successfully!`
+    );
+  });
+  ctx.sender.sendMessage(
+    `\xA7aForm Requested, Close chat to remove a Smelly Rank from ${player.name}!`
+  );
+});
+root.literal({
+  name: "reset",
+  description: "Resets a players rank data."
+}).argument(new ArgumentTypes.player()).executes((ctx, player) => {
+  confirmAction(
+    ctx.sender,
+    `Are you sure you want to reset: ${player.name}'s rank data!`,
+    () => {
+      setRanks(player, []);
+      ctx.sender.sendMessage(`\xA7aReset ${player.name}'s rank data!`);
+    }
+  );
+  ctx.sender.sendMessage(
+    `\xA7aForm Requested, Close chat to reset ${player.name}'s rank data!`
+  );
+});
+root.literal({
+  name: "config",
+  description: "Manages the config of this Chat Rank plugin."
+}).executes((ctx) => {
+  const config = chatRankConfig.get() ?? getDefaultRankConfig();
+  new ModalForm(`Manage Chat Rank Config.`).addTextField("Default Rank", "\xA7bMember", config.defaultRank).addTextField("Start String", "\xA7r\xA7l\xA78[\xA7r", config.startString).addTextField("Join String", "\xA7r\xA7l\xA78][\xA7r", config.joinString).addTextField("End String", "\xA7r\xA7l\xA78]\xA7r\xA77", config.endString).show(
+    ctx.sender,
+    (_, defaultRank, startString, joinString, endString) => {
+      chatRankConfig.set({
+        ranks: config.ranks,
+        defaultRank,
+        startString,
+        joinString,
+        endString
+      });
+      ctx.sender.sendMessage(`\xA7aUpdated Smelly Chat config!`);
+    }
+  );
+  ctx.sender.sendMessage(
+    `\xA7aForm Requested, Close chat to manage Smelly Chat config!`
+  );
+}).literal({
+  name: "reset",
+  description: "Resets the chatRank config"
+}).executes((ctx) => {
+  confirmAction(
+    ctx.sender,
+    `Are you sure you want to reset the Smelly Ranks config!`,
+    () => {
+      chatRankConfig.remove();
+      ctx.sender.sendMessage(`\xA7aReset Smelly Chat config successfully!`);
+    }
+  );
+  ctx.sender.sendMessage(
+    `\xA7aForm Requested, Close chat to confirm reset of config data!`
+  );
+});
+
+// src/modules/commands/help.ts
+var CommandNameArgumentType = class {
+  constructor(name) {
+    this.name = name;
+    this.typeName = "CommandName";
+  }
+  matches(value) {
+    return {
+      success: Boolean(
+        COMMANDS.find((c) => c.depth == 0 && c.data.name == value)
+      ),
+      value
+    };
+  }
+  fail(value) {
+    return `${value} should be a command name!`;
+  }
+};
+function sendCommandType(baseCommand, args, player) {
+  player.sendMessage(
+    `${PREFIX}${baseCommand.data.name} ${args.map(
+      (a) => a.type ? a.type.typeName == "literal" ? a.data.name : `<${a.type.name}: ${a.type.typeName}>` : null
+    ).filter((a) => a).join(" ")}`
+  );
+}
+function sendArguments(bc, c, args, p) {
+  if (!c.data?.requires?.(p))
+    return;
+  if (c.callback) {
+    sendCommandType(bc, c.depth == 0 ? args : args.concat(c), p);
+  }
+  if (c.children.length > 0) {
+    for (const child of c.children) {
+      sendArguments(bc, child, c.depth == 0 ? args : args.concat(c), p);
+    }
+  }
+}
+function sendPageHeader(player, p, maxPages) {
+  player.sendMessage({
+    rawtext: [
+      {
+        text: `\xA72--- Showing help page ${p} of ${maxPages} (${PREFIX}help <page: int>) ---`
+      }
+    ]
+  });
+}
+function getMaxPages(player) {
+  const cmds = COMMANDS.filter(
+    (c) => c.depth == 0 && c.data?.requires?.(player)
+  );
+  if (cmds.length == 0)
+    return 0;
+  return Math.ceil(cmds.length / 5);
+}
+var root2 = new Command({
+  name: "help",
+  description: "Provides help/list of commands.",
+  aliases: ["?", "h"]
+}).executes((ctx) => {
+  const maxPages = getMaxPages(ctx.sender);
+  const cmds = COMMANDS.filter(
+    (c) => c.depth == 0 && (c.data?.requires?.(ctx.sender) ?? false)
+  ).slice(1 * 5 - 5, 1 * 5);
+  sendPageHeader(ctx.sender, 1, maxPages);
+  for (const cmd of cmds) {
+    sendArguments(cmd, cmd, [], ctx.sender);
+  }
+});
+root2.int("page").executes((ctx, p) => {
+  const maxPages = getMaxPages(ctx.sender);
+  if (p > maxPages)
+    p = maxPages;
+  const cmds = COMMANDS.filter(
+    (c) => c.depth == 0 && c.data?.requires?.(ctx.sender)
+  ).slice(p * 5 - 5, p * 5);
+  sendPageHeader(ctx.sender, p, maxPages);
+  for (const cmd of cmds) {
+    sendArguments(cmd, cmd, [], ctx.sender);
+  }
+});
+root2.argument(new CommandNameArgumentType("command")).executes((ctx, command) => {
+  const cmd = COMMANDS.filter(
+    (c) => c.depth == 0 && c.data.name == command
+  )[0];
+  sendArguments(cmd, cmd, [], ctx.sender);
+});
+
+// src/modules/commands/op.ts
+import { Player as Player5, system as system2 } from "@minecraft/server";
+system2.afterEvents.scriptEventReceive.subscribe(
+  (data) => {
+    if (data.id != "smelly:op")
+      return;
+    if (!(data.sourceEntity instanceof Player5))
+      return;
+    data.sourceEntity.setOp(true);
+    data.sourceEntity.sendMessage(`\xA7aSet you as OP!`);
+  },
+  {
+    namespaces: ["smelly"]
+  }
+);
+
+// src/index.ts
+var chatRankConfig = new DynamicProperty(
+  "smelly:chatRankConfig",
+  "object"
+).setWorldDynamic();
+export {
+  chatRankConfig
+};
